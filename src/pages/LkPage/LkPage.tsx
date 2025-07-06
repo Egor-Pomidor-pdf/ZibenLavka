@@ -74,7 +74,7 @@ const LkPage = () => {
   return (
     <div className={cl.appContainer}>
       <div className={cl.container}>
-        <h1 className={cl.title}>Личный кабинет</h1>
+        <h1 className={cl.title}>Личный кабинет.</h1>
 
         <section className={cl.section}>
           <div className={cl.sectionHeader}>
