@@ -1,0 +1,133 @@
+import React, { useEffect, useState } from 'react';
+import cl from "./LkPage.module.css"
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+
+interface InventoryItem {
+  id: string;
+  item_id: string;
+  item_name: string;
+  description: string;
+  quantity: number;
+}
+
+interface userData {
+  username: string,
+  money: string,
+  money_per_click: number,
+  money_per_second: number,
+  inventory: InventoryItem[],
+}
+
+const LkPage = () => {
+  const navigate = useNavigate()
+
+  const [userInfo, setUserInfo] = useState<userData>({
+    username: "",
+    money: "",
+    money_per_click: 0,
+    money_per_second: 0,
+    inventory: [{item_name: "dd", description: "ddd", id: "33", item_id: "434", quantity: 44}, {item_name: "dd", description: "ddd", id: "33", item_id: "434", quantity: 44}]
+  })
+
+  const clickMoney = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+         if (!token) {
+          navigate("/login");
+          return;
+        }
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const clickResponse = await axios.post("api/v1/game/click/")
+      await fetchData()
+    } catch(error) {
+      alert("Не удалось кликнуть")
+      console.log(error);
+    }
+  }
+
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const userResponse = await axios.get<userData>("/api/v1/game/info/")
+      setUserInfo(userResponse.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+
+    const intervalId = setInterval(fetchData, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [navigate])
+
+  return (
+    <div className={cl.appContainer}>
+      <div className={cl.container}>
+        <h1 className={cl.title}>Личный кабинет</h1>
+
+        <section className={cl.section}>
+          <div className={cl.sectionHeader}>
+            <h2 className={cl.sectionTitle}>Личные данные</h2>
+          </div>
+
+          <div className={cl.card}>
+            <div className={cl.userInfoItem}>
+              <span className={cl.infoLabel}>Логин:</span>
+              <span className={cl.infoValue}>{userInfo.username}</span>
+            </div>
+
+            <div className={cl.userInfoItem}>
+              <span className={cl.infoLabel}>Общее количество денег:</span>
+              <span className={cl.infoValue}>{userInfo.money}</span>
+            </div>
+
+            <div className={cl.userInfoItem}>
+              <span className={cl.infoLabel}>Монет за клик</span>
+              <span className={cl.infoValue}>{userInfo.money_per_click}</span>
+            </div>
+            <div className={cl.userInfoItem}>
+              <span className={cl.infoLabel}>Монет в секунду</span>
+              <span className={cl.infoValue}>{userInfo.money_per_second}</span>
+            </div>
+          </div>
+          <div className={cl.sectionClicker}>
+            <h2 className={cl.sectionClicker__title}>Кликкер</h2>
+            <button
+            onClick={clickMoney}
+            className={cl.sectionClicker__button}>НАЖАТЬ</button>
+          </div>
+          <div className={cl.sectionInventar}>
+            {userInfo.inventory.map((item) => (
+              <div className={cl.sectionInventar__product}>
+                <h4 className={cl.sectionInventar__product__name}>{item.item_name}</h4>
+                <p className={cl.sectionInventar__product__description}>{item.description}</p>
+                <div className={cl.quantity}>{item.quantity}</div>
+
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+export default LkPage;
+
+
+// username: "",
+//     money: "",
+//     money_per_click: 0,
+//     money_per_second: 0,
+//     inventory: [],
