@@ -47,7 +47,7 @@ class RegisterSerializer(BaseAsyncSerializer):
     def get_refresh(self, user):
         return str(RefreshToken.for_user(user))
 
-    def avalidate(self, data):
+    async def avalidate(self, data):
         email = data["email"]
 
         if CustomUser.objects.filter(email=email, is_active=True).aexists():
