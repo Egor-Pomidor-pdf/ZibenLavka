@@ -1,8 +1,8 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from adrf.serializers import ModelSerializer
 from rest_framework.serializers import ValidationError, as_serializer_error
-
 from rest_framework.fields import empty
+from asgiref.sync import sync_to_async
 
 
 class BaseAsyncSerializer(ModelSerializer):
@@ -19,7 +19,7 @@ class BaseAsyncSerializer(ModelSerializer):
         if is_empty_value:
             return data
 
-        value = self.to_internal_value(data)
+        value = await sync_to_async(self.to_internal_value)(data)
         print(value, "adfas")
         try:
             self.run_validators(value)
