@@ -31,7 +31,7 @@ class UserSerializer(BaseAsyncSerializer):
         return int(instance.money) + elapsed * instance.money_per_second
 
 
-class RegisterSerializer(ModelSerializer):
+class RegisterSerializer(BaseAsyncSerializer):
 
     password = serializers.CharField(write_only=True, max_length=128)
     access = serializers.SerializerMethodField(read_only=True)
@@ -47,10 +47,10 @@ class RegisterSerializer(ModelSerializer):
     def get_refresh(self, user):
         return str(RefreshToken.for_user(user))
 
-    def validate(self, data):
+    def avalidate(self, data):
         email = data["email"]
 
-        if CustomUser.objects.filter(email=email, is_active=True).exists():
+        if CustomUser.objects.filter(email=email, is_active=True).aexists():
             raise serializers.ValidationError(
                 {"email": "This email is already registered to an active account"}
             )
