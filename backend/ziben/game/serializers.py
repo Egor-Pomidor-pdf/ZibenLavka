@@ -5,11 +5,14 @@ from adrf.fields import SerializerMethodField
 from rest_framework import serializers
 from asgiref.sync import async_to_sync, sync_to_async
 from async_property import async_property
+import logging
 
 from .models import *
 from .tasks import make_transaction_item_between_users
 from authentication.models import CustomUser
 from ziben.base_serializer import BaseAsyncSerializer
+
+logger = logging.getLogger("game")
 
 
 class ItemSerializer(BaseAsyncSerializer):
@@ -22,10 +25,11 @@ class InventoryItemSerializer(BaseAsyncSerializer):
     item_id = serializers.UUIDField(source="item.id")
     item_name = serializers.CharField(source="item.name")
     description = serializers.CharField(source="item.description")
+    image = serializers.ImageField(source="item.image", required=False, allow_null=True)
 
     class Meta:
         model = Inventory
-        fields = ("id", "item_id", "item_name", "description", "quantity")
+        fields = ("id", "item_id", "item_name", "description", "quantity", "image")
 
 
 class ShopItemSerializer(BaseAsyncSerializer):
@@ -34,10 +38,11 @@ class ShopItemSerializer(BaseAsyncSerializer):
     name = serializers.CharField(source="item.name")
     cost = serializers.IntegerField(source="item.cost")
     description = serializers.CharField(source="item.description")
+    image = serializers.ImageField(source="item.image", required=False, allow_null=True)
 
     class Meta:
         model = ShopItem
-        fields = ("id", "item_id", "name", "cost", "description")
+        fields = ("id", "item_id", "name", "cost", "description", "image")
 
 
 class UserGameInfoSerializer(BaseAsyncSerializer):
@@ -56,6 +61,8 @@ class UserGameInfoSerializer(BaseAsyncSerializer):
 
     async def avalidate(self, data):
         data["money_per_click"] = max(0, data["money_per_click"])
+        data["money_per_second"] = max(0, data["money_per_second"])
+        logger.info(data)
         return await super().avalidate(data)
 
     def get_money(self, user: CustomUser) -> str:
@@ -71,42 +78,33 @@ class UserGameInfoSerializer(BaseAsyncSerializer):
 
 class SellItemSerializer(BaseAsyncSerializer):
 
-    inventory_item_id = serializers.UUIDField()
+    id = serializers.UUIDField()
     user_id = serializers.IntegerField()
 
     class Meta:
         model = AuctionTable
-        fields = ["id", "user_id", "inventory_item_id", "quantity", "price"]
+        fields = ["user_id", "id", "quantity", "price"]
 
     async def avalidate(self, data):
+        self._errors = []
         if data["quantity"] <= 0:
-            if not hasattr(self, "_errors"):
-                self._errors = []
             self._errors.append({"quantity": "quantity should be positive"})
         if data["price"] <= 0:
-            if not hasattr(self, "_errors"):
-                self._errors = []
             self._errors.append({"price": "price should be positive"})
 
         try:
             self.user: CustomUser = await CustomUser.objects.aget(pk=data["user_id"])
         except:
-            if not hasattr(self, "_errors"):
-                self._errors = []
             self._errors.append({"user": "invalid user_id"})
 
         try:
             self.invitem = await Inventory.objects.select_related("item").aget(
-                pk=data["inventory_item_id"], user_id=data["user_id"]
+                pk=data["id"], user_id=data["user_id"]
             )
             if self.invitem.quantity < data["quantity"]:
-                self._error.append(
-                    {"inventory_item": "insufficient amount of inventory_item_id item"}
-                )
+                self._error.append({"user": "insufficient amount of id item"})
 
         except:
-            if not hasattr(self, "_errors"):
-                self._errors = []
             self._errors.append({"inventory_item": "invalid inventory_item_id"})
 
         return data
@@ -116,10 +114,10 @@ class SellItemSerializer(BaseAsyncSerializer):
             self, "_errors"
         ), "You must call `.ais_valid()` before calling `.asell()`."
         validated_data = self.validated_data
-        make_transaction_item_between_users(
+        await make_transaction_item_between_users(
             Inventory,
             AuctionTable,
-            self.invitem.id,
+            self.invitem,
             validated_data["quantity"],
             validated_data["price"],
             validated_data["user_id"],
@@ -177,16 +175,13 @@ class BuyItemAunctionSerializer(BaseAsyncSerializer):
         raise NotImplemented("Update is not supported")
 
     async def avalidate(self, data):
+        self._errors = []
         if data["quantity"] <= 0:
-            if not hasattr(self, "_errors"):
-                self._errors = []
             self._errors.append({"quantity": "quantity should be positive"})
 
         try:
             self.user: CustomUser = await CustomUser.objects.aget(pk=data["user_id"])
         except:
-            if not hasattr(self, "_errors"):
-                self._errors = []
             self._errors.append({"user": "invalid user_id"})
             self.user = None
 
@@ -198,18 +193,12 @@ class BuyItemAunctionSerializer(BaseAsyncSerializer):
                 self.user
                 and self.user.get_current_money() < self.slot.price * data["quantity"]
             ):
-                if not hasattr(self, "_errors"):
-                    self._errors = []
                 self._errors.append({"auctionitem": "Insufficient amount of funds"})
 
             if self.user and self.user.id == self.slot.user.id:
-                if not hasattr(self, "_errors"):
-                    self._errors = []
                 self._errors.append({"user": "You can't buy your own items"})
 
         except Exception as e:
-            if not hasattr(self, "_errors"):
-                self._errors = []
             self._errors.append({"auctionitem": "Item of Auction is not found"})
 
         return data
@@ -222,10 +211,10 @@ class BuyItemAunctionSerializer(BaseAsyncSerializer):
 
         data = self.validated_data
         print(data)
-        make_transaction_item_between_users(
+        await make_transaction_item_between_users(
             AuctionTable,
             Inventory,
-            self.slot.id,
+            self.slot,
             data["quantity"],
             self.slot.price,
             self.slot.user.id,
@@ -265,12 +254,66 @@ class BuyItemAunctionSerializer(BaseAsyncSerializer):
         # await self.user.asave()
 
 
-class UserAuctionSerializer(BaseAsyncSerializer):
-    item = serializers.SerializerMethodField()
+class RetrieveFromAuctionItemSerializer(BaseAsyncSerializer):
+
+    id = serializers.UUIDField()
+    user_id = serializers.IntegerField()
 
     class Meta:
         model = AuctionTable
-        fields = ["id", "item", "quantity", "price"]
+        fields = ["user_id", "id", "quantity"]
+
+    async def avalidate(self, data):
+        self._errors = []
+        if data["quantity"] <= 0:
+            self._errors.append({"quantity": "quantity should be positive"})
+
+        try:
+            self.user: CustomUser = await CustomUser.objects.aget(pk=data["user_id"])
+        except:
+            self._errors.append({"user": "invalid user_id"})
+        print(self._errors)
+
+        try:
+            self.aucitem = await AuctionTable.objects.select_related("item").aget(
+                pk=data["id"], user_id=data["user_id"]
+            )
+            if self.aucitem.quantity < data["quantity"]:
+                self._error.append(
+                    {"inventory_item": "insufficient amount of inventory_item_id item"}
+                )
+
+        except:
+            self._errors.append({"inventory_item": "invalid inventory_item_id"})
+        print(self._errors)
+        print(self.aucitem.id)
+
+        return data
+
+    async def aretrieve(self):
+        assert hasattr(
+            self, "_errors"
+        ), "You must call `.ais_valid()` before calling `.asell()`."
+        assert len(self._errors) == 0, "errors happened"
+        validated_data = self.validated_data
+        await make_transaction_item_between_users(
+            AuctionTable,
+            Inventory,
+            self.aucitem,
+            validated_data["quantity"],
+            None,
+            validated_data["user_id"],
+            validated_data["user_id"],
+        )
+
+
+class UserAuctionSerializer(BaseAsyncSerializer):
+    item = serializers.SerializerMethodField()
+    image = serializers.ImageField(source="item.image", required=False, allow_null=True)
+
+    class Meta:
+        model = AuctionTable
+        fields = ["id", "item", "quantity", "price", "image"]
 
     def get_item(self, auctionitem: AuctionTable):
         item = auctionitem.item
@@ -284,10 +327,11 @@ class UserAuctionSerializer(BaseAsyncSerializer):
 class AuctionSerializer(BaseAsyncSerializer):
     item = serializers.SerializerMethodField()
     username = serializers.CharField(source="user.name")
+    image = serializers.ImageField(source="item.image", required=False, allow_null=True)
 
     class Meta:
         model = AuctionTable
-        fields = ["id", "item", "user", "quantity", "price"]
+        fields = ["id", "item", "user", "quantity", "price", "image"]
 
     def get_item(self, auctionitem: AuctionTable):
         item = auctionitem.item

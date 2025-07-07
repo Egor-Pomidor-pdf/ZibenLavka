@@ -20,6 +20,7 @@ class BaseAsyncSerializer(ModelSerializer):
             return data
 
         value = self.to_internal_value(data)
+        print(value, "adfas")
         try:
             self.run_validators(value)
             value = await self.avalidate(value)

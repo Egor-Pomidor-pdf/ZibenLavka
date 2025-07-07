@@ -2,12 +2,14 @@ from django.db.models import F, Model
 from celery import shared_task
 from typing import Type, TypeVar
 from importlib import import_module
+from celery.utils.log import get_task_logger
 
 from authentication.models import CustomUser
 from game.models import *
 
 
 DjangoModel = TypeVar("DjnagoModel", bound=Model)
+logger = get_task_logger(__name__)
 
 
 def get_class_path(cls) -> str:
@@ -21,19 +23,21 @@ def click_money(user_id: int, amount: int):
     user.save()
 
 
-def make_transaction_item_between_users(
+async def make_transaction_item_between_users(
     model1: Type[DjangoModel],
     model2: Type[DjangoModel],
-    itemholder_id,
+    itemholder,
     quantity: int,
     price: int,
     seller_id: int,
     receiver_id: int,
 ):
+    itemholder.quantity = F("quantity") - quantity
+    await itemholder.asave()
     transaction_item_between_users_task.delay(
         get_class_path(model1),
         get_class_path(model2),
-        itemholder_id,
+        itemholder.id,
         quantity,
         price,
         seller_id,
@@ -47,7 +51,7 @@ def transaction_item_between_users_task(
     model2_path: str,
     itemholder_id,
     quantity: int,
-    price: int,
+    price: int | None,
     seller_id: int,
     receiver_id: int,
 ):
@@ -73,23 +77,27 @@ def transaction_item_between_users_task(
     itemholder = model1.objects.get(pk=itemholder_id)
     item: Items = itemholder.item
 
+    logger.info(itemholder)
+    logger.info(item)
+
     receiver.update_money()
 
-    total_price = quantity * price
+    total_price = quantity * price if price else None
 
-    if itemholder.quantity < quantity:
-        return
-
-    if receiver_id != seller_id:
+    if receiver_id != seller_id and total_price:
         # Validating whether receiver has sufficient ammount of money
         if int(receiver.money) < total_price:
+            logger.info("returned in money validation")
             return
         receiver.money = int(receiver.money) - total_price
-        itemholder.quantity = F("quantity") - quantity
+        # itemholder.quantity = F("quantity") - quantity
         seller.money = int(seller.money) + total_price
 
     try:
-        inventory_slot = model2.objects.get(user=receiver, item=item)
+        if hasattr(model2, "price"):
+            inventory_slot = model2.objects.get(user=receiver, item=item, price=price)
+        else:
+            inventory_slot = model2.objects.get(user=receiver, item=item)
         inventory_slot.quantity += quantity
         inventory_slot.save()
     except:
@@ -123,12 +131,12 @@ def transaction_item_between_users_task(
 
     receiver.save()
 
-    print(itemholder.quantity)
+    logger.info(receiver.money_per_click)
+    itemholder.save()
+    logger.info("item quantity" + str(itemholder.quantity))
 
-    if itemholder.quantity == quantity:
+    if itemholder.quantity == 0:
         itemholder.delete()
-    else:
-        itemholder.save()
 
     if receiver_id != seller_id:
         seller.save()

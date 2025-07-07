@@ -12,6 +12,7 @@ class Items(models.Model):
     description = models.CharField(null=True)
     click_factor = models.IntegerField(default=0)
     timed_factor = models.IntegerField(default=1)
+    image = models.ImageField(upload_to="items/", blank=True, null=True)
 
     def __str__(self):
         return self.name

@@ -15,7 +15,7 @@ class CustomUser(AbstractUser):
     money_per_click = models.BigIntegerField(default=1)
     money_per_second = models.BigIntegerField(default=0)
     email_verification_token = models.CharField(null=True)
-    email_verfication_token_date = models.DateTimeField(null=True, auto_now_add=True)
+    password_reset_token = models.CharField(null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "password"]
@@ -23,7 +23,7 @@ class CustomUser(AbstractUser):
     def get_current_money(self) -> int:
         now = timezone.now()
         seconds = int((now - self.time_money_last_earn).total_seconds())
-        return int(self.money) + seconds * self.money_per_second
+        return int(self.money) + seconds * max(0, self.money_per_second)
 
     def update_money(self):
         """Doesn't save it to the DB"""

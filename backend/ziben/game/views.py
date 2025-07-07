@@ -14,6 +14,7 @@ from asgiref.sync import sync_to_async
 from rest_framework.request import Request
 from random import randint
 from math import ceil
+import logging
 
 from authentication.models import CustomUser
 from .models import *
@@ -22,13 +23,16 @@ from .serializers import *
 from ziben.generics import ACreateAPIView
 from ziben.settings import MIN_AMOUNT_OF_ITEMS_IN_SHOP, MAX_AMOUNT_OF_ITEMS_IN_SHOP
 
+logger = logging.getLogger("game")
 
 # Create your views here.
 
 
 def _select_item_index(prefix: list[int]) -> int:
     weight = randint(1, prefix[-1])
-    print(weight)
+    logger.info(weight)
+    logger.debug("sdafasfd")
+    logger.info(prefix)
     left, right = 0, len(prefix)
 
     while left < right:
@@ -67,6 +71,7 @@ class InfoAPIView(generics.RetrieveAPIView):
         serializer = self.get_serializer(user)
         data = await serializer.adata
         data["money_per_click"] = max(0, data["money_per_click"])
+        data["money_per_second"] = max(0, data["money_per_second"])
         return Response(data)
 
 
@@ -102,8 +107,10 @@ class GetShopListAPIView(generics.ListAPIView):
             items = [item async for item in Items.objects.aiterator()]
 
             for i, item in enumerate(items):
-                prefix[i + 1] = prefix[i] + int(item.cost)
+                prefix[i + 1] = prefix[i] + int(item.rarity)
                 ids[i] = item.id
+
+            print(prefix)
 
             result = []
 
@@ -128,7 +135,7 @@ class BuyItemAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     async def post(self, request):
-        uuid = request.data["uuid"]
+        uuid = request.data["id"]
         user: CustomUser = request.user
         try:
             shopitem = await ShopItem.objects.select_related("item").aget(
@@ -196,10 +203,23 @@ class BuyItemAuctionAPIView(APIView):
         data = {**request.data}
         data["user_id"] = self.request.user.id
         serializer = BuyItemAunctionSerializer(data=data)
-        await serializer.ais_valid()
+        await serializer.ais_valid(raise_exception=True)
         await serializer.abuy()
 
         return Response({"message": "Items are successfuly bought"})
+
+
+class RetriveFromAuctionAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    async def post(self, request: Request):
+        data = {**request.data}
+        data["user_id"] = self.request.user.id
+        serializer = RetrieveFromAuctionItemSerializer(data=data)
+        await serializer.ais_valid(raise_exception=True)
+        await serializer.aretrieve()
+
+        return Response({"message": "Items are successfuly retrieved"})
 
 
 class UserAuctionAPIView(APIView):
@@ -210,7 +230,7 @@ class UserAuctionAPIView(APIView):
 
     def filter_queryset(self, queryset):
         return (
-            queryset.filter(user=self.request.user)
+            queryset.filter(user=self.request.user, quantity__gt=0)
             .annotate(total_price=F("quantity") * F("price"))
             .order_by("-total_price")
         )
@@ -218,7 +238,6 @@ class UserAuctionAPIView(APIView):
     async def get(self, request, page_number):
         fqs = self.filter_queryset(self.queryset)
         count = await fqs.acount()
-        print(count)
         start = (page_number - 1) * self.page_size
         if start > count:
             return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -251,6 +270,7 @@ class AuctionListAPIView(UserAuctionAPIView):
     def filter_queryset(self, queryset):
         return (
             queryset.exclude(user=self.request.user)
+            .filter(quantity__gt=0)
             .annotate(total_price=F("quantity") * F("price"))
             .order_by("-total_price")
         )
