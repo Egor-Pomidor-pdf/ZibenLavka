@@ -50,7 +50,7 @@ class RegisterSerializer(BaseAsyncSerializer):
     async def avalidate(self, data):
         email = data["email"]
 
-        if CustomUser.objects.filter(email=email, is_active=True).aexists():
+        if await CustomUser.objects.filter(email=email, is_active=True).aexists():
             raise serializers.ValidationError(
                 {"email": "This email is already registered to an active account"}
             )
