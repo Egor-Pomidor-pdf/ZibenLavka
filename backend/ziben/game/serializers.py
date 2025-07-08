@@ -1,10 +1,8 @@
 from django.db.models import F
 from django.utils import timezone
-from adrf.serializers import ModelSerializer
 from adrf.fields import SerializerMethodField
 from rest_framework import serializers
-from asgiref.sync import async_to_sync, sync_to_async
-from async_property import async_property
+from rest_framework.exceptions import ValidationError
 import logging
 
 from .models import *
@@ -107,6 +105,9 @@ class SellItemSerializer(BaseAsyncSerializer):
         except:
             self._errors.append({"inventory_item": "invalid inventory_item_id"})
 
+        if self._errors:
+            raise ValidationError(self._errors)
+
         return data
 
     async def asell(self):
@@ -200,6 +201,8 @@ class BuyItemAunctionSerializer(BaseAsyncSerializer):
 
         except Exception as e:
             self._errors.append({"auctionitem": "Item of Auction is not found"})
+        if self._errors:
+            raise ValidationError(self._errors)
 
         return data
 
@@ -272,7 +275,6 @@ class RetrieveFromAuctionItemSerializer(BaseAsyncSerializer):
             self.user: CustomUser = await CustomUser.objects.aget(pk=data["user_id"])
         except:
             self._errors.append({"user": "invalid user_id"})
-        print(self._errors)
 
         try:
             self.aucitem = await AuctionTable.objects.select_related("item").aget(
@@ -285,9 +287,8 @@ class RetrieveFromAuctionItemSerializer(BaseAsyncSerializer):
 
         except:
             self._errors.append({"inventory_item": "invalid inventory_item_id"})
-        print(self._errors)
-        print(self.aucitem.id)
-
+        if self._errors:
+            raise ValidationError(self._errors)
         return data
 
     async def aretrieve(self):
