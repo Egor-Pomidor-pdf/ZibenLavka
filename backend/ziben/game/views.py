@@ -30,9 +30,6 @@ logger = logging.getLogger("game")
 
 def _select_item_index(prefix: list[int]) -> int:
     weight = randint(1, prefix[-1])
-    logger.info(weight)
-    logger.debug("sdafasfd")
-    logger.info(prefix)
     left, right = 0, len(prefix)
 
     while left < right:
@@ -57,7 +54,9 @@ class AppleClicked(APIView):
 
     async def post(self, request: HttpRequest):
         user: CustomUser = request.user
-        click_money.delay(user.id, max(0, user.money_per_click))
+        user.money = int(user.money) + user.money_per_click
+
+        await user.asave()
 
         return Response({"message": "Task of click created"})
 
