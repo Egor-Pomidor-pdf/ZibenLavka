@@ -180,7 +180,6 @@ class SellItemOnAuctionAPIView(ACreateAPIView):
     async def post(self, request: Request):
         data = {**request.data}
         data["user_id"] = self.request.user.id
-
         serializer: SellItemSerializer = self.get_serializer(data=data)
         await serializer.ais_valid(raise_exception=True)
         await serializer.asell()
@@ -194,10 +193,9 @@ class BuyItemAuctionAPIView(APIView):
     async def post(self, request: Request):
         data = {**request.data}
         data["user_id"] = self.request.user.id
-        serializer = BuyItemAunctionSerializer(data=data)
+        serializer: BuyItemAunctionSerializer = BuyItemAunctionSerializer(data=data)
         await serializer.ais_valid(raise_exception=True)
         await serializer.abuy()
-
         return Response({"message": "Items are successfuly bought"})
 
 
@@ -266,16 +264,3 @@ class AuctionListAPIView(UserAuctionAPIView):
             .annotate(total_price=F("quantity") * F("price"))
             .order_by("-total_price")
         )
-
-
-class BuyItemAuctionAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    async def post(self, request: Request):
-        data = {**request.data}
-        data["user_id"] = self.request.user.id
-        serializer = BuyItemAunctionSerializer(data=data)
-        await serializer.ais_valid()
-        await serializer.abuy()
-
-        return Response({"message": "Items are successfuly bought"})
