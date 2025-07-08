@@ -170,7 +170,6 @@ class BuyItemAunctionSerializer(BaseAsyncSerializer):
         fields = ["id", "user_id", "quantity"]
 
     async def avalidate(self, data):
-        print("validation called")
         self._errors = []
         if data["quantity"] <= 0:
             self._errors.append({"quantity": "quantity should be positive"})
@@ -179,61 +178,32 @@ class BuyItemAunctionSerializer(BaseAsyncSerializer):
             self.user: CustomUser = await CustomUser.objects.aget(pk=data["user_id"])
         except:
             self._errors.append({"user": "invalid user_id"})
+            self.user = None
 
         try:
-            self.slot = await AuctionTable.objects.select_related("item").aget(
-                pk=data["id"], user_id=data["user_id"]
+            self.slot = await AuctionTable.objects.select_related("user", "item").aget(
+                id=data["id"]
             )
-            if self.slot.quantity < data["quantity"]:
-                self._errors.append({"aucitem": "insufficient amount of id item"})
+            if (
+                self.user
+                and self.user.get_current_money() < self.slot.price * data["quantity"]
+            ):
+                self._errors.append({"auctionitem": "Insufficient amount of funds"})
 
-        except:
-            self._errors.append({"aucitem": "invalid aucitem id"})
+            if self.user and self.user.id == self.slot.user.id:
+                self._errors.append({"user": "You can't buy your own items"})
+
+            if self.slot.quantity < data["quantity"]:
+                self._errors.append({"auctionitem": "wrong number of items"})
+
+        except Exception as e:
+            self._errors.append({"auctionitem": "Item of Auction is not found"})
+            self.slot = None
 
         if self._errors:
-            raise ValidationError(self._errors)
-
-        print("returned")
+            raise ValidationError(detail=self._errors)
 
         return data
-        # self._errors = []
-        # print(data)
-        # if data["quantity"] <= 0:
-        #     print("negative")
-        #     self._errors.append({"quantity": "quantity should be positive"})
-
-        # try:
-        #     self.user: CustomUser = await CustomUser.objects.aget(pk=data["user_id"])
-        # except:
-        #     self._errors.append({"user": "invalid user_id"})
-        #     self.user = None
-
-        # try:
-        #     self.slot = await AuctionTable.objects.select_related("user", "item").aget(
-        #         id=data["id"]
-        #     )
-        #     if (
-        #         self.user
-        #         and self.user.get_current_money() < self.slot.price * data["quantity"]
-        #     ):
-        #         self._errors.append({"auctionitem": "Insufficient amount of funds"})
-
-        #     if self.user and self.user.id == self.slot.user.id:
-        #         self._errors.append({"user": "You can't buy your own items"})
-
-        #     if self.slot.quantity < data["quantity"]:
-        #         self._errors.append({"auctionitem": "wrong number of items"})
-
-        # except Exception as e:
-        #     self._errors.append({"auctionitem": "Item of Auction is not found"})
-        #     self.slot = None
-
-        # print(len(self._errors))
-        # print(data)
-        # if self._errors:
-        #     raise ValidationError(self._errors)
-
-        # return data
 
     async def abuy(self) -> None:
 
