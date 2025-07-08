@@ -17,20 +17,27 @@ const Navabar: FC = () => {
       >
         Личный кабинет
       </Link>
-      {/* <Link
-        className={`${cl.navabar__links__item} ${cl.navabar__links__item_reg}`}
-        to="/tap"
-      >
-        Тапать
-      </Link> */}
       <Link
         className={`${cl.navabar__links__item} ${cl.navabar__links__item_reg}`}
         to="/login"
       >
         Вход
       </Link>
+      <Link
+        className={`${cl.navabar__links__item} ${cl.navabar__links__item_reg}`}
+        to="/auction"
+      >
+        Аукцион
+      </Link>
+      <Link
+        className={`${cl.navabar__links__item} ${cl.navabar__links__item_reg}`}
+        to="/myAuction"
+      >
+        МойАукцион
+      </Link>
     </div>
   );
 };
+
 
 export default Navabar;

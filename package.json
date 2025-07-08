@@ -2,7 +2,7 @@
   "name": "gameshop",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://10.147.20.99:8000",
+  "proxy": "http://213.171.26.166/",
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "@testing-library/jest-dom": "^6.6.3",

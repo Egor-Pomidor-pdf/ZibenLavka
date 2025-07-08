@@ -4,8 +4,9 @@ import MainPage from "../pages/MainPage/MainPage";
 import LkPage from "../pages/LkPage/LkPage";
 import LoginPage from "../pages/LoginPage/LoginPage";
 import RegPage from "../pages/RegPage/RegPage";
-import TapPage from "../pages/TapPage/TapPage";
 import EmailConfirmationPage from "../pages/EmailConfirmationPage/EmailConfirmationPage";
+import AuctionPage from "../pages/auctionPage/auctionPage";
+import MyAuctionPage from "../pages/myAuctionPage/myAuctionPage";
 
 
 const AppRouter:FC = () => {
@@ -14,8 +15,9 @@ const AppRouter:FC = () => {
       { path: "/lkabinet", element: <LkPage /> },
       { path: "/login", element: <LoginPage /> },
       { path: "/reg", element: <RegPage /> },
-      { path: "/tap", element: <TapPage /> },
-      {path: "/accounts/register/:uidb64/:token/", element: <EmailConfirmationPage/>}
+      {path: "/accounts/register/:uidb64/:token/", element: <EmailConfirmationPage/>},
+      { path: "/auction", element: <AuctionPage /> },
+      { path: "/myAuction", element: <MyAuctionPage /> },
     ]
     return (
       

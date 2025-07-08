@@ -12,7 +12,7 @@ interface formData {
 
 interface LoginResponse {
   access: string;
-  refresh_token: string;
+  refresh: string;
 }
 
 
@@ -26,8 +26,8 @@ const LoginPage = () => {
     setIsAuth(false);
     localStorage.removeItem("auth");
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("is_specialist");
+    // localStorage.removeItem("userId");
+    // localStorage.removeItem("is_specialist");
     delete axios.defaults.headers.common['Authorization'];
     navigate("/login");
   }
@@ -58,6 +58,8 @@ const LoginPage = () => {
         }
       })
       const accessToken = response.data.access
+      const refreshToken = response.data.refresh
+
       console.log("Вход совершил");
       
       if (accessToken) {
@@ -65,13 +67,15 @@ const LoginPage = () => {
         setIsAuth(true);
         localStorage.setItem("auth", "true");
         localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+
         // localStorage.setItem("refreshToken", refreshToken); 
         axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
         navigate("/");
       }
     } catch (error) {
       console.log(error);
-      alert("sdsfdsff")
+      alert("Произошла ошибка")
     }
   }
 

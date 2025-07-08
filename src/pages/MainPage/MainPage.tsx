@@ -13,19 +13,25 @@ interface Product {
   name: string,
   cost: number,
   description: string,
+  image: string
 }
 const MainPage: FC = () => {
+  const navigate = useNavigate()
+
   const [cart, setCart] = useState<Product[]>([
   ]);
 
 
 
   const buyProd = async (id: string) => {
-    try {
+    try {const token = localStorage.getItem("accessToken");
+      if (!token) {
+       navigate("/login");
+       return;
+     }
 
       const response = await axios.post<string>("/api/v1/game/buy/", { id: id })
       console.log(`покупаем ${id}`);
-
       setCart(prevCart => prevCart.filter(item => item.id !== id))
 
     } catch (error) {

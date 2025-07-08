@@ -144,3 +144,73 @@
     justify-content: center;
     font-weight: bold;
 }
+
+.label {
+    display: block;
+    color: #D4AF37;
+    margin: 10px 0 5px 0;
+    font-size: 0.9rem;
+}
+
+.input {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: #1A1A1A;
+    border: 1px solid #C19A6B;
+    color: #FFFFFF;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-family: inherit;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #D4AF37;
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+}
+
+.input::placeholder {
+    color: #6b6b6b;
+    font-size: 0.8rem;
+}
+
+.button__container {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Стили для самой кнопки */
+.button__sell {
+    width: 100%;
+    padding: 12px 0;
+    background-color: #8B4513; 
+    color: #FFD700; 
+    border: 1px solid #D4AF37;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.button__sell:hover {
+    background-color: #A0522D; 
+    color: #FFFFFF;
+    border-color: #FFD700;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.button__sell:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.button__sell:disabled {
+    background-color: #3A3A3A;
+    color: #6b6b6b;
+    cursor: not-allowed;
+    border-color: #3A3A3A;
+}

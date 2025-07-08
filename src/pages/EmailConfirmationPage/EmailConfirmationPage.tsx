@@ -16,7 +16,13 @@ const EmailConfirmationPage = () => {
     useEffect(() => {
         const confirmEmail = async () => {
             try {
-                const response = await axios.post('/api/v1/auth/verify-email/', { uidb64, token })
+                const response = await axios.post('/api/v1/auth/verify-email/', { uidb64, token }, {
+                    headers: {
+                        'Authorization': undefined 
+                      }
+                }
+                    
+                )
                 if (response.data.message === "User is registered") {
                     setMessage("Email подтверждён!");
                     navigate('/login');

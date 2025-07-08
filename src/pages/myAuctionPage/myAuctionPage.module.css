@@ -1,0 +1,114 @@
+/* Основные стили (аналогичные предыдущим) */
+.appContainer {
+    margin-top: 28px;
+    background-color: #1A1A1A;
+    color: #FFFFFF;
+    font-family: 'Playfair Display', serif;
+    min-height: 100vh;
+    padding-bottom: 50px;
+}
+
+.container {
+    margin: 0 auto;
+    max-width: 1300px;
+    padding: 0 20px;
+}
+
+.title {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #D4AF37;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.section {
+    margin-bottom: 50px;
+}
+
+.sectionHeader {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #C19A6B;
+    padding-bottom: 10px;
+}
+
+.sectionTitle {
+    font-size: 1.8rem;
+    color: #D4AF37;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Стили для карточек аукционов */
+.auctionItems {
+    display: grid;
+    gap: 20px;
+}
+
+.auctionItem {
+    display: flex;
+    background-color: #2D1A12;
+    border: 1px solid #C19A6B;
+    border-radius: 5px;
+    padding: 20px;
+    gap: 20px;
+    align-items: center;
+}
+
+.auctionItemImage {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.auctionItemInfo {
+    flex: 1;
+}
+
+.auctionItemName {
+    color: #D4AF37;
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+}
+
+.auctionItemDescription {
+    color: #FFFFFF;
+    margin-bottom: 10px;
+}
+
+.auctionItemDetails {
+    display: flex;
+    gap: 15px;
+    color: #C19A6B;
+}
+
+.auctionItemActions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 150px;
+}
+
+.quantityInput {
+    padding: 8px;
+    background-color: #1A1A1A;
+    border: 1px solid #C19A6B;
+    color: white;
+    text-align: center;
+}
+
+.returnButton {
+    padding: 10px;
+    background-color: #8B0000;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.returnButton:hover {
+    background-color: #A52A2A;
+}

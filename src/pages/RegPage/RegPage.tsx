@@ -35,7 +35,8 @@ const RegPage = () => {
             const response = await axios.post<formD>("/api/v1/auth/register/", formData, {
                 headers: {
                   'Content-Type': 'application/json',
-                  'Accept': 'application/json'
+                  'Accept': 'application/json',
+                  'Authorization': undefined 
                 }
               })
             console.log("Succes");
