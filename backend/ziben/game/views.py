@@ -145,19 +145,12 @@ class BuyItemAPIView(APIView):
                 {"error": "invalid uuid"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        now = timezone.now()
+        user.update_money()
 
-        current_money = int(user.money) + user.money_per_second * int(
-            (now - user.time_money_last_earn).total_seconds()
-        )
-
-        if current_money < shopitem.item.cost:
+        if int(user.money) < shopitem.item.cost:
             return Response(
                 {"error": "not enough money"}, status=status.HTTP_400_BAD_REQUEST
             )
-
-        user.time_money_last_earn = now
-        user.money = str(current_money - shopitem.item.cost)
 
         try:
             inventoryitem = await Inventory.objects.aget(
