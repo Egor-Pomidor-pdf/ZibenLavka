@@ -98,6 +98,7 @@ const AuctionPage = () => {
           >
             <img className={cl.auctionContainer__item__image} src={item.image} alt="" />
             <span className={cl.auctionContainer__item__name}>{item.item.name}</span>
+            <span className={cl.auctionContainer__item__price}>Цена: {item.item.name} Zcoins</span>
             <span className={cl.auctionContainer__item__quantity}>Количетсво: {item.quantity}</span>
             <span className={cl.auctionContainer__item__description}>{item.item.description}</span>
             <input 

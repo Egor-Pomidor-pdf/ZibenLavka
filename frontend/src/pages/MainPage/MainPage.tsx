@@ -76,7 +76,7 @@ const MainPage: FC = () => {
                 <span>
                   {prod.name}
                 </span>
-                <img className={cl.prodItem__img} src={def} />
+                <img className={cl.prodItem__img} src={prod.image} />
                 <div className={cl.prodItem__text}>
                   <span>
                     Цена: {prod.cost} Zcoins

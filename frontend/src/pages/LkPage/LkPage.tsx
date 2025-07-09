@@ -127,7 +127,6 @@ const LkPage = () => {
       const clickResponse = await axios.post("api/v1/game/click/")
       await fetchData()
     } catch (error) {
-      alert("Не удалось кликнуть")
       console.log(error);
     }
   }
@@ -207,7 +206,7 @@ const LkPage = () => {
                   min="1"
                   max={item.quantity}
                   value={
-                    quantities[item.id] || 1
+                    quantities[item.id]
                   }
                   placeholder="Введите количество предметов на продажу"
                   onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
@@ -219,7 +218,7 @@ const LkPage = () => {
                   type="number"
                   min="1"
                   value={
-                    costs[item.id] || 1
+                    costs[item.id]
                   }
                   placeholder="Введите цену на продажу"
                   onChange={(e) => handleCostsChange(item.id, parseInt(e.target.value))}
