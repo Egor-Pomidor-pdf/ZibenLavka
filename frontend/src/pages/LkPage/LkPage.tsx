@@ -33,7 +33,41 @@ const LkPage = () => {
     money_per_click: 0,
     money_per_second: 0,
     inventory: [
-     
+      {
+        id: "1",
+        item_id: "101",
+        item_name: "Золотой меч",
+        description: "Острый меч из чистого золота",
+        quantity: 3
+      },
+      {
+        id: "2",
+        item_id: "102",
+        item_name: "Лечебное зелье",
+        description: "Восстанавливает 50 HP",
+        quantity: 10
+      },
+      {
+        id: "3",
+        item_id: "103",
+        item_name: "Кожаный доспех",
+        description: "Простая защита для новичков",
+        quantity: 1
+      },
+      {
+        id: "4",
+        item_id: "104",
+        item_name: "Магический свиток",
+        description: "Позволяет выучить заклинание",
+        quantity: 5
+      },
+      {
+        id: "5",
+        item_id: "105",
+        item_name: "Редкий алмаз",
+        description: "Драгоценный камень для крафта",
+        quantity: 2
+      }
 
     ]
   })
@@ -169,7 +203,7 @@ const LkPage = () => {
                 className={cl.input}
 
                   type="number"
-                  min="0"
+                  min="1"
                   max={item.quantity}
                   value={
                     quantities[item.id]
@@ -182,7 +216,7 @@ const LkPage = () => {
                 className={cl.input}
                 id="cost"
                   type="number"
-                  min="0"
+                  min="1"
                   value={
                     costs[item.id]
                   }
@@ -200,4 +234,3 @@ const LkPage = () => {
 };
 
 export default LkPage;
-
