@@ -33,41 +33,7 @@ const LkPage = () => {
     money_per_click: 0,
     money_per_second: 0,
     inventory: [
-      {
-        id: "1",
-        item_id: "101",
-        item_name: "Золотой меч",
-        description: "Острый меч из чистого золота",
-        quantity: 3
-      },
-      {
-        id: "2",
-        item_id: "102",
-        item_name: "Лечебное зелье",
-        description: "Восстанавливает 50 HP",
-        quantity: 10
-      },
-      {
-        id: "3",
-        item_id: "103",
-        item_name: "Кожаный доспех",
-        description: "Простая защита для новичков",
-        quantity: 1
-      },
-      {
-        id: "4",
-        item_id: "104",
-        item_name: "Магический свиток",
-        description: "Позволяет выучить заклинание",
-        quantity: 5
-      },
-      {
-        id: "5",
-        item_id: "105",
-        item_name: "Редкий алмаз",
-        description: "Драгоценный камень для крафта",
-        quantity: 2
-      }
+     
 
     ]
   })
@@ -127,7 +93,6 @@ const LkPage = () => {
       const clickResponse = await axios.post("api/v1/game/click/")
       await fetchData()
     } catch (error) {
-      alert("Не удалось кликнуть")
       console.log(error);
     }
   }
@@ -204,10 +169,10 @@ const LkPage = () => {
                 className={cl.input}
 
                   type="number"
-                  min="1"
+                  min="0"
                   max={item.quantity}
                   value={
-                    quantities[item.id] || 1
+                    quantities[item.id]
                   }
                   placeholder="Введите количество предметов на продажу"
                   onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
@@ -217,9 +182,9 @@ const LkPage = () => {
                 className={cl.input}
                 id="cost"
                   type="number"
-                  min="1"
+                  min="0"
                   value={
-                    costs[item.id] || 1
+                    costs[item.id]
                   }
                   placeholder="Введите цену на продажу"
                   onChange={(e) => handleCostsChange(item.id, parseInt(e.target.value))}
@@ -235,3 +200,4 @@ const LkPage = () => {
 };
 
 export default LkPage;
+
