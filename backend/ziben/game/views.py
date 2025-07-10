@@ -164,6 +164,7 @@ class BuyItemAPIView(APIView):
         inventoryitem.quantity = F("quantity") + 1
         user.money_per_click += shopitem.item.click_factor
         user.money_per_second += shopitem.item.timed_factor
+        user.money = str(int(user.money) - shopitem.item.cost)
 
         await user.asave()
         await inventoryitem.asave()
